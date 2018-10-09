@@ -1,4 +1,4 @@
-﻿/*! MenuLauncher v0.1 | CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/deed) */
+﻿/*! MenuLauncher v0.2 | CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/deed) */
 
 #include <windows.h>
 #include <stdio.h>
@@ -94,7 +94,7 @@ int CreateLaunchMenu(HMENU menu, UINT indent) {
 				switch (state) {
 					case 1: //dir
 						pmenu = CreatePopupMenu();
-						InsertMenuA(menu, -1, MF_BYPOSITION | MF_POPUP, (UINT)pmenu, temp.c_str());
+						InsertMenuA(menu, -1, MF_BYPOSITION | MF_POPUP, (UINT_PTR)pmenu, temp.c_str());
 						if (CreateLaunchMenu(pmenu, indent+1) == -1) return -1;
 						break;
 					case 2: //file
@@ -212,7 +212,11 @@ inline int RunLaunchMenu(UINT id) {
 		_Str_Set(com); //file
 	}
 	//実行
+#if defined(_WIN64)
+	if ((long long int)ShellExecuteA(nullptr, nullptr, &temp[0], &com[0], &dir[0], SW_SHOW) <= 32) return -1;
+#elif defined(_WIN32)
 	if ((int)ShellExecuteA(nullptr, nullptr, &temp[0], &com[0], &dir[0], SW_SHOW) <= 32) return -1;
+#endif
 	return 0;
 }
 
