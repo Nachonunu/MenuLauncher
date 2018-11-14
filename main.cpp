@@ -1,4 +1,4 @@
-﻿/*! MenuLauncher v0.2 | CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/deed) */
+﻿/*! MenuLauncher v0.3 | CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/deed) */
 
 #include <windows.h>
 #include <stdio.h>
@@ -230,8 +230,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
 			if (CreateLaunchMenu(hPopupMenu, 0) == 0) {
 				if (SetForegroundWindow(hwnd) == 0) DestroyWindow(hwnd);
 				id = TrackPopupMenu(hPopupMenu, TPM_RETURNCMD, 0, 0, 0, hwnd, nullptr);
-				if (id >= 10000)
-					if (RunLaunchMenu(id-10000) == -1) MessageBoxA(hwnd, "Error", "Launcher", MB_OK | MB_ICONWARNING);
+				if (id >= 10000 && RunLaunchMenu(id-10000) == -1) MessageBoxA(hwnd, "Error", "Launcher", MB_OK | MB_ICONWARNING);
 			}
 			DestroyWindow(hwnd);
 			break;
@@ -251,7 +250,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
 	winc.lpszClassName = "LauncherWindows";
 	if (!RegisterClassA(&winc)) return -1;
 
-	if (fopen_s(&fp, "MenuLauncher.conf", "r") != 0) return -1;
+	if (__argc >= 2) { if (fopen_s(&fp, __argv[1], "r") != 0) return -1;
+	} else if (fopen_s(&fp, "MenuLauncher.conf", "r") != 0) return -1;
 
 	HWND hwnd = CreateWindowA("LauncherWindows", "", WS_DISABLED, 0, 0, 100, 100, HWND_MESSAGE, nullptr, hInstance, nullptr);
 	if (hwnd == nullptr) { fclose(fp); delete cur; return -1; }
