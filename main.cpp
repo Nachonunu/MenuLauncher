@@ -1,8 +1,8 @@
-﻿/*! MenuLauncher v0.3 | CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/deed) */
+﻿/*! MenuLauncher v0.4 | CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/deed) */
 
 #include <windows.h>
-#include <stdio.h>
 
+#include <cstdio>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -250,8 +250,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
 	winc.lpszClassName = "LauncherWindows";
 	if (!RegisterClassA(&winc)) return -1;
 
-	if (__argc >= 2) { if (fopen_s(&fp, __argv[1], "r") != 0) return -1;
-	} else if (fopen_s(&fp, "MenuLauncher.conf", "r") != 0) return -1;
+	//カレントディレクトリを実行ファイルパスに変更
+	char exepath[MAX_PATH];
+	if (GetModuleFileNameA(NULL, exepath, MAX_PATH) != 0) {
+		char* exepath_last = strrchr(exepath, '\\');
+		if (exepath_last != NULL) {
+			*exepath_last = '\0';
+			SetCurrentDirectoryA(exepath);
+		}
+	}
+
+	if (fopen_s(&fp, (__argc >= 2) ? __argv[1] : "MenuLauncher.conf", "r") != 0) return -1;
 
 	HWND hwnd = CreateWindowA("LauncherWindows", "", WS_DISABLED, 0, 0, 100, 100, HWND_MESSAGE, nullptr, hInstance, nullptr);
 	if (hwnd == nullptr) { fclose(fp); delete cur; return -1; }
