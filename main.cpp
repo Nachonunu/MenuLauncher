@@ -47,7 +47,7 @@ inline int _Str_Set(string& str) {
 				v_char = fgetc(fp);
 				while (v_char != EOF) {
 					if (v_char == '>') break;
-					else varname += (char)v_char;
+					else varname += static_cast<char>(v_char);
 					v_char = fgetc(fp);
 				}
 				//idから文字列を取得
@@ -70,10 +70,10 @@ inline int _Str_Set(string& str) {
 				break;
 			case '\\':
 				c = fgetc(fp);
-				if (c == '\"') str += "\"";
-				else { str += "\\"; fseek(fp, -1, SEEK_CUR); }
+				if (c == '\"') str += '\"';
+				else { str += '\\'; fseek(fp, -1, SEEK_CUR); }
 				break;
-			default: str += (char)c; break;
+			default: str += static_cast<char>(c); break;
 		}
 		c = fgetc(fp);
 	}
@@ -150,7 +150,7 @@ int CreateLaunchMenu(HMENU menu, UINT indent) {
 					while (c != EOF) {
 						if (c == ' ') break;
 						else if (c == '\n') return -1;
-						else temp += (char)c;
+						else temp += static_cast<char>(c);
 						c = fgetc(fp);
 					}
 					if (c == EOF) return -1;
@@ -239,6 +239,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, int nCmdShow) {
+	{
+		//カレントディレクトリを実行ファイルパスに変更
+		char exepath[MAX_PATH];
+		if (GetModuleFileNameA(nullptr, exepath, MAX_PATH) != 0) {
+			char* exepath_last = strrchr(exepath, '\\');
+			if (exepath_last != nullptr) {
+				*exepath_last = '\0';
+				SetCurrentDirectoryA(exepath);
+			}
+		}
+	}
+	if (fopen_s(&fp, (__argc >= 2) ? __argv[1] : "MenuLauncher.conf", "r") != 0) return -1;
+
 	WNDCLASSA winc;
 	winc.style = CS_HREDRAW | CS_VREDRAW;
 	winc.lpfnWndProc = WndProc;
@@ -247,20 +260,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
 	winc.hInstance = hInstance;
 	winc.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
 	winc.hCursor = LoadCursor(nullptr, IDC_ARROW);
+	winc.hbrBackground = (HBRUSH)COLOR_BACKGROUND+1;
+	winc.lpszMenuName = nullptr;
 	winc.lpszClassName = "LauncherWindows";
 	if (!RegisterClassA(&winc)) return -1;
-
-	//カレントディレクトリを実行ファイルパスに変更
-	char exepath[MAX_PATH];
-	if (GetModuleFileNameA(NULL, exepath, MAX_PATH) != 0) {
-		char* exepath_last = strrchr(exepath, '\\');
-		if (exepath_last != NULL) {
-			*exepath_last = '\0';
-			SetCurrentDirectoryA(exepath);
-		}
-	}
-
-	if (fopen_s(&fp, (__argc >= 2) ? __argv[1] : "MenuLauncher.conf", "r") != 0) return -1;
 
 	HWND hwnd = CreateWindowA("LauncherWindows", "", WS_DISABLED, 0, 0, 100, 100, HWND_MESSAGE, nullptr, hInstance, nullptr);
 	if (hwnd == nullptr) { fclose(fp); delete cur; return -1; }
